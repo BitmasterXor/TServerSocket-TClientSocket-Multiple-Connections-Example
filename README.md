@@ -35,6 +35,7 @@
 <ul>
   <li><code>Delphi RAD Studio:</code> Required for compiling and running the project.</li>
   <li><code>Standard Delphi Components:</code> Utilizes default VCL components for GUI and socket communication.</li>
+  <li><code>Instructions To Add Sockets To Your IDE:</code> In IDE click Components-> install packages-> ADD button browse to "C:\Program Files (x86)\Embarcadero\Studio\23.0\bin" and add this file dclsockets270.bpl </li>
 </ul>
 
 <h2>License</h2>
