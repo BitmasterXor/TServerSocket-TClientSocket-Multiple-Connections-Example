@@ -42,4 +42,4 @@
 
 <hr>
 
-<p>Built with Delphi RAD Studio with ❤️ by Joshua Reed.</p>
+<p>Built with Delphi RAD Studio with ❤️ by BitmasterXor.</p>
